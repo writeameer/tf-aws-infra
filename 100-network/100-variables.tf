@@ -1,21 +1,3 @@
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "me-central-1"  # Dubai region
-}
-
-variable "environment" {
-  description = "Environment name"
-  type        = string
-  default     = "demo"
-}
-
-variable "cluster_name" {
-  description = "Name of the EKS cluster"
-  type        = string
-  default     = "eks-demo"
-}
-
 variable "vpc_cidr" {
   description = "CIDR block for VPC - using /16 for large IP space (65,536 IPs)"
   type        = string

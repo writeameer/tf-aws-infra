@@ -13,6 +13,23 @@ resource "aws_vpc" "main" {
   }
 }
 
+# Get the main route table of the VPC
+data "aws_route_table" "main" {
+  vpc_id = aws_vpc.main.id
+  filter {
+    name   = "association.main"
+    values = ["true"]
+  }
+}
+# Tag the main route table
+resource "aws_default_route_table" "main_name" {
+  
+  default_route_table_id = aws_vpc.main.default_route_table_id
+  tags = {
+    Name = "Main Route Table for ${aws_vpc.main.tags["Name"]}"
+  }
+}
+
 # Internet Gateway for the VPC
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
@@ -35,23 +52,23 @@ resource "aws_subnet" "public_subnets" {
   }
 }
 
-# Route table for public subnets
-resource "aws_route_table" "public_route_table" {
-  vpc_id = aws_vpc.main.id
+# # Route table for public subnets
+# resource "aws_route_table" "public_route_table" {
+#   vpc_id = aws_vpc.main.id
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
-  }
-}
+#   route {
+#     cidr_block = "0.0.0.0/0"
+#     gateway_id = aws_internet_gateway.main.id
+#   }
+# }
 
-# Route table associations for public subnets
-resource "aws_route_table_association" "public_route_associations" {
-  count = length(aws_subnet.public_subnets)
+# # Route table associations for public subnets
+# resource "aws_route_table_association" "public_route_associations" {
+#   count = length(aws_subnet.public_subnets)
 
-  subnet_id      = aws_subnet.public_subnets[count.index].id
-  route_table_id = aws_route_table.public_route_table.id
-}
+#   subnet_id      = aws_subnet.public_subnets[count.index].id
+#   route_table_id = aws_route_table.public_route_table.id
+# }
 
 
 #------------------------------------------------------------------------------------------------------
@@ -72,22 +89,22 @@ resource "aws_subnet" "private_subnets" {
   }
 }
 
-# Route tables for private subnets
-resource "aws_route_table" "private_route_table" {
-  count = length(aws_subnet.private_subnets)
+# # Route tables for private subnets
+# resource "aws_route_table" "private_route_table" {
+#   count = length(aws_subnet.private_subnets)
 
-  vpc_id = aws_vpc.main.id
+#   vpc_id = aws_vpc.main.id
 
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.main[count.index].id
-  }
-}
+#   route {
+#     cidr_block     = "0.0.0.0/0"
+#     nat_gateway_id = aws_nat_gateway.main[count.index].id
+#   }
+# }
 
-# Route table associations for private subnets
-resource "aws_route_table_association" "private_route_associations" {
-  count = length(aws_subnet.private_subnets)
+# # Route table associations for private subnets
+# resource "aws_route_table_association" "private_route_associations" {
+#   count = length(aws_subnet.private_subnets)
 
-  subnet_id      = aws_subnet.private_subnets[count.index].id
-  route_table_id = aws_route_table.private_route_table[count.index].id
-}
+#   subnet_id      = aws_subnet.private_subnets[count.index].id
+#   route_table_id = aws_route_table.private_route_table[count.index].id
+# }
