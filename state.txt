@@ -1,0 +1,6 @@
+backend_config = {
+  "bucket" = "tfstate-47a66729"
+  "key" = "foundation/terraform.tfstate"
+  "region" = "me-central-1"
+}
+bucket_name = "tfstate-47a66729"
