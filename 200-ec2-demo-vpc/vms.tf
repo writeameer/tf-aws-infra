@@ -55,6 +55,10 @@ data "aws_subnets" "subnets" {
 #   }
 # }
 
+
+locals {
+  subnet_tier = { for id, s in data.aws_subnet.by_id : id => try(s.tags.Tier, "unknown") }
+}
 # Launch one instance in each subnet with numbered names
 resource "aws_instance" "vms" {
   count = length(data.aws_subnets.subnets.ids)
@@ -66,6 +70,10 @@ resource "aws_instance" "vms" {
   iam_instance_profile = aws_iam_instance_profile.ssm_profile.name
 
   tags = {
-    Name = format("vm-%02d", count.index + 1)
+    Tier = local.subnet_tier[data.aws_subnets.subnets.ids[count.index]]
+    Name = format("vm-tier%s-%02d",
+      local.subnet_tier[data.aws_subnets.subnets.ids[count.index]],
+      count.index + 1
+    )
   }
 }

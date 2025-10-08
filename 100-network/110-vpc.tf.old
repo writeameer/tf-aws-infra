@@ -1,0 +1,170 @@
+# VPC
+
+#------------------------------------------------------------------------------------------------------
+# Create the VPC
+#------------------------------------------------------------------------------------------------------
+
+resource "aws_vpc" "main" {
+  cidr_block           = var.vpc_cidr
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  tags = {
+    Name = "demo-vpc"
+  }
+}
+
+# Get the main route table of the VPC
+data "aws_route_table" "main" {
+  vpc_id = aws_vpc.main.id
+  filter {
+    name   = "association.main"
+    values = ["true"]
+  }
+}
+# Tag the main route table
+# NOTE: This should NOT be associated with any subnet
+resource "aws_default_route_table" "main_name" {
+  
+  default_route_table_id = aws_vpc.main.default_route_table_id
+  tags = {
+    Name = "Main Route Table for ${aws_vpc.main.tags["Name"]}"
+  }
+}
+
+# Internet Gateway for the VPC
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+}
+
+
+#------------------------------------------------------------------------------------------------------
+# Get Availability Zones: Used for subnet distribution
+#------------------------------------------------------------------------------------------------------
+
+
+# Data source for availability zones
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+
+#------------------------------------------------------------------------------------------------------
+# Public Subnets and route to Internet Gateway
+#------------------------------------------------------------------------------------------------------
+
+# Create Public Subnets
+resource "aws_subnet" "tier1_subnets" {
+  count = length(var.tier1_subnet_cidrs)
+
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.tier1_subnet_cidrs[count.index]
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  tags = {
+    Name = "public-subnet-${count.index + 1}"
+  }
+}
+
+# Route table for public subnets to route to Internet Gateway
+resource "aws_route_table" "tier1_route_table" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
+  tags = {
+    Name = "Route to IGW"
+  }
+}
+
+# Associate IGW route table with public subnets
+resource "aws_route_table_association" "tier1_route_associations" {
+  count = length(aws_subnet.tier1_subnets)
+
+  subnet_id      = aws_subnet.tier1_subnets[count.index].id
+  route_table_id = aws_route_table.tier1_route_table.id
+}
+
+
+#------------------------------------------------------------------------------------------------------
+# Tier2 Subnets and route to NAT Gateway
+#------------------------------------------------------------------------------------------------------
+
+
+# Create Private Subnets
+resource "aws_subnet" "tier2_subnets" {
+  count = length(var.tier2_subnet_cidrs)
+
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.tier2_subnet_cidrs[count.index]
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+
+  tags = {
+    Name = "private-subnet-${count.index + 1}"
+  }
+}
+
+# Route tables for tier2 subnets to NAT Gateway
+resource "aws_route_table" "tier2_route_table" {
+  count = length(aws_subnet.tier2_subnets)
+
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.main[count.index].id
+  }
+  tags = {
+    Name = "Route to NAT Gateway for ${aws_subnet.tier2_subnets[count.index].tags["Name"]}"
+  }
+}
+
+# Route table associations for tier2 subnets
+resource "aws_route_table_association" "tier2_route_associations" {
+  count = length(aws_subnet.tier2_subnets)
+
+  subnet_id      = aws_subnet.tier2_subnets[count.index].id
+  route_table_id = aws_route_table.tier2_route_table[count.index].id
+}
+
+
+#------------------------------------------------------------------------------------------------------
+# Tier3 Subnets and route to NAT Gateway
+#------------------------------------------------------------------------------------------------------
+
+
+# Create Private Subnets
+resource "aws_subnet" "tier3_subnets" {
+  count = length(var.tier2_subnet_cidrs)
+
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.tier3_subnet_cidrs[count.index]
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+
+  tags = {
+    Name = "private-subnet-${count.index + 1}"
+  }
+}
+
+# Route tables for tier3 subnets to NAT Gateway
+resource "aws_route_table" "tier3_route_table" {
+  count = length(aws_subnet.tier2_subnets)
+
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.main[count.index].id
+  }
+  tags = {
+    Name = "Route to NAT Gateway for ${aws_subnet.tier3_subnets[count.index].tags["Name"]}"
+  }
+}
+
+# Route table associations for tier2 subnets
+resource "aws_route_table_association" "tier3_route_associations" {
+  count = length(aws_subnet.tier3_subnets)
+
+  subnet_id      = aws_subnet.tier3_subnets[count.index].id
+  route_table_id = aws_route_table.tier3_route_table[count.index].id
+}
