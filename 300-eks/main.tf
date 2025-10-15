@@ -51,6 +51,11 @@ module "eks" {
 
       subnet_ids = data.aws_subnets.private_tier2.ids
 
+      # Enable SSM Session Manager access
+      iam_role_additional_policies = {
+        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      }
+
       block_device_mappings = {
         root = {
           device_name = "/dev/xvda"
@@ -69,6 +74,13 @@ module "eks" {
   cluster_addons = {
     coredns    = { most_recent = true }
     kube-proxy = { most_recent = true }
-    vpc-cni    = { most_recent = true }
+    vpc-cni    = { 
+      most_recent = true
+      configuration_values = jsonencode({
+        env = {
+          WARM_ENI_TARGET = "2"
+        }
+      })
+    }
   }
 }

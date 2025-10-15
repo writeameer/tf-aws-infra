@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-alb-demo
+  labels:
+    app: nginx-alb-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx-alb-demo
+  template:
+    metadata:
+      labels:
+        app: nginx-alb-demo
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-alb-service
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: nginx-alb-demo
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-alb-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-alb-service
+            port:
+              number: 80
