@@ -4,7 +4,7 @@
 # Creates current.tar.gz with 100-network, 200-ec2-demo-vpc, and 300-eks directories
 
 $OutputFile = "current.tar.gz"
-$Directories = @("100-network", "200-ec2-demo-vpc", "300-eks")
+$Directories = @("100-network", "200-ec2-demo-vpc", "300-eks","310-eks-addons")
 
 # Remove existing tarball if it exists
 if (Test-Path $OutputFile) {

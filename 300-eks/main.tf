@@ -42,7 +42,7 @@ module "eks" {
       # AL2023 on Graviton (ARM64). Valid values include:
       # AL2023_ARM_64_STANDARD | AL2023_x86_64_STANDARD
       ami_type       = "AL2023_ARM_64_STANDARD"
-      instance_types = local.supported_instance_types
+      instance_types = ["t4g.micro", "t4g.small"]
       capacity_type  = var.use_spot ? "SPOT" : "ON_DEMAND"
 
       min_size     = var.min_size

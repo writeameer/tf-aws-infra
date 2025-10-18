@@ -14,6 +14,10 @@ output "oidc_provider_arn" {
   value = module.eks.oidc_provider_arn
 }
 
+output "cluster_certificate_authority_data" {
+  value = module.eks.cluster_certificate_authority_data
+}
+
 output "private_subnet_ids" {
   value = data.aws_subnets.private_tier2.ids
 }

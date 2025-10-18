@@ -10,12 +10,6 @@ variable "kubernetes_version" {
   default     = "1.33"
 }
 
-variable "node_instance_types" {
-  description = "Preferred instance types (ordered). Only region-supported types will be used."
-  type        = list(string)
-  default     = ["t4g.small", "t4g.micro"]
-}
-
 variable "desired_size" {
   description = "Desired node count"
   type        = number
@@ -49,14 +43,3 @@ variable "tags" {
   }
 }
 
-variable "static_allowed_cidrs" {
-  description = "Static CIDR allowlist for EKS public endpoint"
-  type        = list(string)
-  default     = ["82.178.17.251/32"]
-}
-
-variable "include_current_ip" {
-  description = "Auto-include the current public IP/32 in the allowlist"
-  type        = bool
-  default     = true
-}
