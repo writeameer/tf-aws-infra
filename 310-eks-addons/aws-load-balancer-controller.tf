@@ -1,3 +1,7 @@
+# TEMPORARILY COMMENTED OUT - AWS Load Balancer Controller
+# Removing this to eliminate webhook interference during Cilium setup
+
+/*
 # IAM role for AWS Load Balancer Controller
 module "aws_load_balancer_controller_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
@@ -45,3 +49,4 @@ resource "helm_release" "aws_load_balancer_controller" {
     value = module.aws_load_balancer_controller_irsa.iam_role_arn
   }
 }
+*/

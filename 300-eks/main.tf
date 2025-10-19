@@ -38,16 +38,26 @@ module "eks" {
   }
 
   eks_managed_node_groups = {
-    default = {
+    group2 = {
       # AL2023 on Graviton (ARM64). Valid values include:
       # AL2023_ARM_64_STANDARD | AL2023_x86_64_STANDARD
       ami_type       = "AL2023_ARM_64_STANDARD"
-      instance_types = ["t4g.micro", "t4g.small"]
+      instance_types = ["t4g.medium", "t4g.small"]
       capacity_type  = var.use_spot ? "SPOT" : "ON_DEMAND"
 
-      min_size     = var.min_size
-      desired_size = var.desired_size
-      max_size     = var.max_size
+      bootstrap_extra_args = "--kubelet-extra-args '--max-pods=110'"
+
+      min_size     = 2
+      desired_size = 3
+      max_size     = 5
+      
+      # Allow terraform to manage desired size
+      ignore_desired_size = false
+      
+      # Force update of desired size
+      update_config = {
+        max_unavailable_percentage = 25
+      }
 
       subnet_ids = data.aws_subnets.private_tier2.ids
 
@@ -67,20 +77,17 @@ module "eks" {
         }
       }
 
-      tags = { Name = "${var.cluster_name}-default-ng" }
+      # Force scaling update
+      create_before_destroy = false
+      
+      tags = { 
+        Name = "${var.cluster_name}-default-ng"
+        ScalingUpdate = "desired-4-nodes"
+      }
     }
   }
 
   cluster_addons = {
-    coredns    = { most_recent = true }
-    kube-proxy = { most_recent = true }
-    vpc-cni    = { 
-      most_recent = true
-      configuration_values = jsonencode({
-        env = {
-          WARM_ENI_TARGET = "2"
-        }
-      })
-    }
+    coredns = { most_recent = true }
   }
 }

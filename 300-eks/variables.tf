@@ -13,7 +13,7 @@ variable "kubernetes_version" {
 variable "desired_size" {
   description = "Desired node count"
   type        = number
-  default     = 3
+  default     = 4
 }
 
 variable "min_size" {
