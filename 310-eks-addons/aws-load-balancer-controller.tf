@@ -1,8 +1,6 @@
 # TEMPORARILY COMMENTED OUT - AWS Load Balancer Controller
-# Removing this to eliminate webhook interference during Cilium setup
 
-/*
-# IAM role for AWS Load Balancer Controller
+//IAM role for AWS Load Balancer Controller
 module "aws_load_balancer_controller_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.0"
@@ -21,7 +19,7 @@ module "aws_load_balancer_controller_irsa" {
   tags = var.tags
 }
 
-# Install AWS Load Balancer Controller via Helm
+// USe helm chart to Install AWS Load Balancer Controller 
 resource "helm_release" "aws_load_balancer_controller" {
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
@@ -49,4 +47,4 @@ resource "helm_release" "aws_load_balancer_controller" {
     value = module.aws_load_balancer_controller_irsa.iam_role_arn
   }
 }
-*/
+
